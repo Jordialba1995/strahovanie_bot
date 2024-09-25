@@ -1,0 +1,1 @@
+# strahovanie_bot
