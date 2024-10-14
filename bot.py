@@ -3,6 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, types
 
 from config_reader import config
+import handler_main
 
 bot = Bot(token=config.bot_token.get_secret_value())
 
@@ -20,7 +21,7 @@ dp = Dispatcher()
 
 
 # registraion routers
-# dp.include_routers()
+dp.include_routers(handler_main.router)
 
 
 
