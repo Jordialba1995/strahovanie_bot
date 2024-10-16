@@ -7,7 +7,8 @@ from datetime import *
 from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile
 
 from keyboards import row_keyboard, services_kb
-from bot_functions import make_dir_my, send_email, validate_fio
+from bot_functions import make_dir_my, send_email, validate_fio, service_choosen, name_worker
+# from text import *
 # from keyboards import *
 
 
@@ -18,7 +19,6 @@ y_n = ['Да', 'Нет']
 list_services = ['КАСКО', 'ОСАГО', 'Страхование от несчастных случаев', 'ВЗР (выезд за рубеж)',
                  'ДМС', 'Страхование недвижимости', 'Ипотечное страхование',
                  'Страхование при диагностировании критических заболеваний']
-
 
 # texts
 hello_message = 'Приветственное сообщение'
@@ -42,7 +42,7 @@ class Service_Strahovanie(StatesGroup):
     input_docs_kasko = State()
 
     # name worker
-    worker_name_kasko = State()
+    worker_name = State()
 
 
 # Начальное вхождение
@@ -123,18 +123,21 @@ async def choosing(message: Message, state: FSMContext):
     F.text.lower() == 'вернуться')
 async def service_cancel(message: Message, state: FSMContext):
     await message.answer(
-        text='вернулись в начало',
-        reply_markup=row_keyboard(['/start'])
+        text='вернулись к выбору страхования',
+        reply_markup=services_kb()
     )
-    await state.set_state(Service_Strahovanie.zero_state)
+    await state.set_state(Service_Strahovanie.choose_service)
 
 
-# select kasko
+# service already choose
 @router.message(Service_Strahovanie.service_chosen,
-                F.text == list_services[0])
+                F.text.in_(list_services))
 async def select_kasko(message: Message, state: FSMContext):
+    await state.update_data(service=message.text)
+    service_need = service_choosen(message.text)
+
     await message.answer(
-        text='отправьте пакет документов для одним архивом и условия по услуге',
+        text=f'отправьте пакет документов для {service_need} одним архивом типа rar и получите условия по услуге',
         reply_markup=ReplyKeyboardRemove()
     )
     await state.set_state(Service_Strahovanie.input_docs_kasko)
@@ -145,6 +148,7 @@ async def select_kasko(message: Message, state: FSMContext):
                 F.content_type == 'document'
                 )
 async def docs_kasko(message: Message, state: FSMContext):
+    user_data = await state.get_data()
     path = make_dir_my('testaaaaaa')
     photo_filename = path + '\\' + datetime.today().strftime('%d%m%Y_%H%M%S') + '_docs1' + '.rar'
     # photo_filename = path
@@ -157,7 +161,7 @@ async def docs_kasko(message: Message, state: FSMContext):
         text='Нажмите Далее для получения ссылки на сотрудника',
         reply_markup=row_keyboard(next_step)
     )
-    await state.set_state(Service_Strahovanie.worker_name_kasko)
+    await state.set_state(Service_Strahovanie.worker_name)
 
 
 # failed input
@@ -168,13 +172,19 @@ async def failed_input(message: Message):
     )
 
 # name worker + smtp
-@router.message(Service_Strahovanie.worker_name_kasko,
+@router.message(Service_Strahovanie.worker_name,
                 )
 async def kasko_worker(message: Message, state: FSMContext):
-
+    user_data = await state.get_data()
+    letter = user_data['fio'] + '//' + user_data['service'] + '//' + datetime.today().strftime('%d%m%Y_%H%M%S')
+    send_email(letter)
 
     await message.answer(
-        text='ssilka na sotrudnika'
+        text=f'ssilka na {name_worker(user_data['service'])} sotrudnika',
+        reply_markup=ReplyKeyboardRemove()
+    )
+    await message.answer(
+        text=letter
     )
 
 

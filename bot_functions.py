@@ -3,6 +3,7 @@ import smtplib
 import re
 
 from email_login import email_login, email_password
+# from text import *
 
 
 
@@ -20,10 +21,12 @@ def make_dir_my(driver_fio):
         return path + '\\'
 
 
-# smtp
-letter = """текст сообщения привет это пробное письмо смтп"""
-letter = letter.encode("UTF-8")
-def send_email():
+# smtp """ """
+# letter = """текст сообщения привет это пробное письмо смтп"""
+# letter = letter.encode("UTF-8")
+def send_email(letter):
+    # letter = f'"""{letter}"""'
+    letter = letter.encode("UTF-8")
     server = smtplib.SMTP_SSL('smtp.yandex.kz:465')
     server.login(email_login, email_password)
     server.sendmail(email_login, 'jordialba1995@gmail.com', letter)
@@ -39,7 +42,61 @@ def validate_fio(string_fio: str):
         return False
 
 
-# ответ на выбранное страхование
-def service_choosen():
-    pass
+list_services = ['КАСКО', 'ОСАГО', 'Страхование от несчастных случаев', 'ВЗР (выезд за рубеж)',
+                 'ДМС', 'Страхование недвижимости', 'Ипотечное страхование',
+                 'Страхование при диагностировании критических заболеваний']
 
+
+# ответ на выбранное страхование
+def service_choosen(service):
+
+    if service == list_services[0]:
+        return 'пакет документов для каско'
+
+    elif service == list_services[1]:
+        return ('пакет документов осаго')
+
+    elif service == list_services[2]:
+        return ('пакет документов для несчастных случаев')
+
+    elif service == list_services[3]:
+        return ('пакет документов взр')
+
+    elif service == list_services[4]:
+        return ('пакет документов дмс')
+
+    elif service == list_services[5]:
+        return ('пакет документов недвижка')
+
+    elif service == list_services[6]:
+        return ('пакет документов ипотечное')
+
+    elif service == list_services[7]:
+        return print('пакет документов крит заболеваний')
+
+
+
+def name_worker(service):
+    if service == list_services[0]:
+        return 'ssilka na sotrudnika для каско'
+
+    elif service == list_services[1]:
+        return ('ssilka осаго')
+
+    elif service == list_services[2]:
+        return ('ssilka для несчастных случаев')
+
+    elif service == list_services[3]:
+        return ('ssilka взр')
+
+    elif service == list_services[4]:
+        return ('ssilka дмс')
+
+    elif service == list_services[5]:
+        return ('ssilka недвижка')
+
+    elif service == list_services[6]:
+        return ('ssilka ипотечное')
+
+    elif service == list_services[7]:
+        return print('silka крит заболеваний')
