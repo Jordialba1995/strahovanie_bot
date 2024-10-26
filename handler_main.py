@@ -94,23 +94,25 @@ async def failed_fio(message: Message, state: FSMContext):
     await state.set_state(Service_Strahovanie.save_fio)
 
 
-# successed fio
-@router.message(Service_Strahovanie.successed_fio,
-                F.text == 'Да')
-async def fio_correct(message: Message, state: FSMContext):
-    user_data = await state.get_data()
-    # path = make_dir_my(user_data['fio']) # в этом сесте создаем?
-    await message.answer(
-        text='Нажмите далее',
-        reply_markup=row_keyboard(next_step)
-    )
-    await state.set_state(Service_Strahovanie.choose_service)
+# # successed fio
+# @router.message(Service_Strahovanie.successed_fio,
+#                 F.text == 'Да')
+# async def fio_correct(message: Message, state: FSMContext):
+#     user_data = await state.get_data()
+#     # path = make_dir_my(user_data['fio']) # в этом сесте создаем?
+#     await message.answer(
+#         text='Нажмите далее',
+#         reply_markup=row_keyboard(next_step)
+#     )
+#     await state.set_state(Service_Strahovanie.choose_service)
 
 
 # choose service
-@router.message(Service_Strahovanie.choose_service)
+@router.message(Service_Strahovanie.successed_fio,
+                F.text == 'Да')
 async def choosing(message: Message, state: FSMContext):
     user_data = await state.get_data()
+    # path = make_dir_my(user_data['fio'])
     await message.answer(
         text='выберите интересующее страхование',
         reply_markup=services_kb()
