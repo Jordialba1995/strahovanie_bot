@@ -2,7 +2,7 @@ import os
 import smtplib
 import re
 
-from email_login import email_login, email_password
+from config_reader import config
 # from text import *
 
 
@@ -21,11 +21,10 @@ def make_dir_my(driver_fio):
         return path + '\\'
 
 
-# smtp """ """
-# letter = """текст сообщения привет это пробное письмо смтп"""
-# letter = letter.encode("UTF-8")
+email_login = config.email_login.get_secret_value()
+email_password = config.email_password.get_secret_value()
+
 def send_email(letter):
-    # letter = f'"""{letter}"""'
     letter = letter.encode("UTF-8")
     server = smtplib.SMTP_SSL('smtp.yandex.kz:465')
     server.login(email_login, email_password)
