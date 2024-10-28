@@ -6,7 +6,6 @@ from config_reader import config
 # from text import *
 
 
-
 #  создает новую папку по указанному пути, при условии, что все указанные промежуточные (вложенные) директории уже существуют.
 def make_dir_my(driver_fio):
     # cwd need to change after finished
@@ -20,15 +19,16 @@ def make_dir_my(driver_fio):
     if isdir_my is True:
         return path + '\\'
 
-
+# send mail
 email_login = config.email_login.get_secret_value()
 email_password = config.email_password.get_secret_value()
+email_send_to = config.email_send_to.get_secret_value()
 
 def send_email(letter):
     letter = letter.encode("UTF-8")
     server = smtplib.SMTP_SSL('smtp.yandex.kz:465')
     server.login(email_login, email_password)
-    server.sendmail(email_login, 'jordialba1995@gmail.com', letter)
+    server.sendmail(email_login, email_send_to, letter)
     server.quit()
 
 
