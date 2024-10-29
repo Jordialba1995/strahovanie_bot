@@ -9,7 +9,6 @@ from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile
 from keyboards import row_keyboard, services_kb
 from bot_functions import make_dir_my, send_email, validate_fio, service_choosen, name_worker
 # from text import *
-# from keyboards import *
 
 
 # items for keyboars
@@ -94,25 +93,11 @@ async def failed_fio(message: Message, state: FSMContext):
     await state.set_state(Service_Strahovanie.save_fio)
 
 
-# # successed fio
-# @router.message(Service_Strahovanie.successed_fio,
-#                 F.text == 'Да')
-# async def fio_correct(message: Message, state: FSMContext):
-#     user_data = await state.get_data()
-#     # path = make_dir_my(user_data['fio']) # в этом сесте создаем?
-#     await message.answer(
-#         text='Нажмите далее',
-#         reply_markup=row_keyboard(next_step)
-#     )
-#     await state.set_state(Service_Strahovanie.choose_service)
-
-
 # choose service
 @router.message(Service_Strahovanie.successed_fio,
                 F.text == 'Да')
 async def choosing(message: Message, state: FSMContext):
     user_data = await state.get_data()
-    # path = make_dir_my(user_data['fio'])
     await message.answer(
         text='выберите интересующее страхование',
         reply_markup=services_kb()
@@ -151,11 +136,9 @@ async def select_kasko(message: Message, state: FSMContext):
                 )
 async def docs_kasko(message: Message, state: FSMContext):
     user_data = await state.get_data()
-    path = make_dir_my('testaaaaaa')
-    photo_filename = path + '\\' + datetime.today().strftime('%d%m%Y_%H%M%S') + '_docs1' + '.rar'
-    # photo_filename = path
-    await message.bot.download(file=message.document.file_id, destination=photo_filename)
-    # await state.update_data(docs=photo_filename) save info about docs for email
+    path = make_dir_my(user_data['fio'])
+    filename = path + '\\' + datetime.today().strftime('%d%m%Y_%H%M%S') + '_docs1' + '.rar'
+    await message.bot.download(file=message.document.file_id, destination=filename)
     await message.answer(
         text='zagruzka docs vipolnena'
     )

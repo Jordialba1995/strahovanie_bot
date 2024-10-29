@@ -9,7 +9,7 @@ from config_reader import config
 #  создает новую папку по указанному пути, при условии, что все указанные промежуточные (вложенные) директории уже существуют.
 def make_dir_my(driver_fio):
     # cwd need to change after finished
-    cwd = r'D:\test'
+    cwd = r'D:\test\bot_photos'
     path = os.path.join(cwd, driver_fio)
     isdir_my = os.path.isdir(path)
     if isdir_my is False:
