@@ -22,6 +22,8 @@ list_services = ['КАСКО', 'ОСАГО', 'Страхование от нес
 # texts
 hello_message = 'Приветственное сообщение'
 
+bye_message = 'poka poka by jordi_alba #4'
+
 
 router = Router()
 
@@ -38,10 +40,11 @@ class Service_Strahovanie(StatesGroup):
     save_fio = State()
     successed_fio = State()
     # paket dokov
-    input_docs_kasko = State()
-
+    input_docs = State()
     # name worker
     worker_name = State()
+    # ended
+    the_end = State()
 
 
 # Начальное вхождение
@@ -57,13 +60,20 @@ async def cmd_start(message: Message, state: FSMContext):
 
 # fio
 @router.message(Service_Strahovanie.fio,
-                F.text)
+                F.text.in_(next_step) or F.text == 'В начало')
 async def fio(message: Message, state: FSMContext):
     await message.answer(
         text='Введите Фамилию, Имя, Отчество ЧЕРЕЗ ПРОБЕЛ\nПример: Иванов Иван Иванович',
         reply_markup=ReplyKeyboardRemove()
     )
     await state.set_state(Service_Strahovanie.save_fio)
+
+
+@router.message(Service_Strahovanie.fio)
+async def check_text_fio(message: Message):
+    await message.answer(
+        text='вы попытались ввести текст, нажмите нужную кнопку'
+    )
 
 
 # save fio
@@ -82,6 +92,13 @@ async def save_fio(message: Message, state: FSMContext):
         await state.set_state(Service_Strahovanie.save_fio)
 
 
+@router.message(Service_Strahovanie.save_fio)
+async def check_text_fio(message: Message):
+    await message.answer(
+        text='вы попытались ввести текст, нажмите нужную кнопку'
+    )
+
+
 # failed fio
 @router.message(Service_Strahovanie.successed_fio,
                 F.text == 'Нет')
@@ -98,11 +115,20 @@ async def failed_fio(message: Message, state: FSMContext):
                 F.text == 'Да')
 async def choosing(message: Message, state: FSMContext):
     user_data = await state.get_data()
+    path = make_dir_my(user_data['fio'])
+    await state.update_data(path=path)
     await message.answer(
         text='выберите интересующее страхование',
         reply_markup=services_kb()
     )
     await state.set_state(Service_Strahovanie.service_chosen)
+
+
+@router.message(Service_Strahovanie.successed_fio)
+async def check_text_fio(message: Message):
+    await message.answer(
+        text='вы попытались ввести текст, нажмите нужную кнопку'
+    )
 
 
 # cancel to search services
@@ -121,36 +147,53 @@ async def service_cancel(message: Message, state: FSMContext):
                 F.text.in_(list_services))
 async def select_kasko(message: Message, state: FSMContext):
     await state.update_data(service=message.text)
-    service_need = service_choosen(message.text)
+    service_need = service_choosen(message.text) # otvet na vibrannoe strahovanie
 
     await message.answer(
         text=f'отправьте пакет документов для {service_need} одним архивом типа rar и получите условия по услуге',
         reply_markup=ReplyKeyboardRemove()
     )
-    await state.set_state(Service_Strahovanie.input_docs_kasko)
+    await state.set_state(Service_Strahovanie.input_docs)
 
 
-# input docs kasko
-@router.message(Service_Strahovanie.input_docs_kasko,
+@router.message(Service_Strahovanie.service_chosen)
+async def check_text_fio(message: Message):
+    await message.answer(
+        text='выберите страхование'
+    )
+
+
+# input docs
+@router.message(Service_Strahovanie.input_docs,
                 F.content_type == 'document'
                 )
 async def docs_kasko(message: Message, state: FSMContext):
     user_data = await state.get_data()
-    path = make_dir_my(user_data['fio'])
-    filename = path + '\\' + datetime.today().strftime('%d%m%Y_%H%M%S') + '_docs1' + '.rar'
-    await message.bot.download(file=message.document.file_id, destination=filename)
-    await message.answer(
-        text='zagruzka docs vipolnena'
-    )
-    await message.answer(
-        text='Нажмите Далее для получения ссылки на сотрудника',
-        reply_markup=row_keyboard(next_step)
-    )
-    await state.set_state(Service_Strahovanie.worker_name)
+    await state.update_data(user_name_file=message.document.file_name)
+    user_filename = message.document.file_name
+    path = user_data['path'] # return path dir
+
+    if user_filename.split('.')[-1] in ['zip', 'rar']:
+        filename = path + '\\' + datetime.today().strftime('%d%m%Y_%H%M%S') + '_docs1' + '.rar'
+        await message.bot.download(file=message.document.file_id, destination=filename)
+        await message.answer(
+            text='zagruzka docs vipolnena'
+        )
+        await message.answer(
+            text='Нажмите Далее для получения ссылки на сотрудника',
+            reply_markup=row_keyboard(next_step)
+        )
+        await state.set_state(Service_Strahovanie.worker_name)
+
+    else:
+        await message.answer(
+            text='Загрузите файл с расширением "zip" или "rar"'
+        )
+        await state.set_state(Service_Strahovanie.input_docs)
 
 
 # failed input
-@router.message(Service_Strahovanie.input_docs_kasko)
+@router.message(Service_Strahovanie.input_docs)
 async def failed_input(message: Message):
     await message.answer(
         text='вы, попытались отправить не документ, попробуйте еще раз'
@@ -158,6 +201,7 @@ async def failed_input(message: Message):
 
 # name worker + smtp
 @router.message(Service_Strahovanie.worker_name,
+                F.text.in_(next_step)
                 )
 async def kasko_worker(message: Message, state: FSMContext):
     user_data = await state.get_data()
@@ -166,12 +210,24 @@ async def kasko_worker(message: Message, state: FSMContext):
 
     await message.answer(
         text=f'ssilka na {name_worker(user_data['service'])} sotrudnika',
-        reply_markup=ReplyKeyboardRemove()
     )
     await message.answer(
-        text=letter
+        text='работа с ботом завершена хотите перейти в начало?',
+        reply_markup=row_keyboard(['В начало'])
     )
+    await state.set_state(Service_Strahovanie.the_end)
 
+# @router.message(Service_Strahovanie.the_end,
+#                 F.text == 'В начало')
+# async def the_end(message: Message, state: FSMContext):
+#     await message.answer(
+#         text=f'{bye_message}\nВведите Фамилию, Имя, Отчество ЧЕРЕЗ ПРОБЕЛ\nПример: Иванов Иван Иванович',
+#         reply_markup=ReplyKeyboardRemove()
+#
+#     )
+#     await state.clear()
+#     # await state.set_data({})
+#     await state.set_state(Service_Strahovanie.fio)
 
 
 
