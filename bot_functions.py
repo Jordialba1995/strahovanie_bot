@@ -3,8 +3,7 @@ import smtplib
 import re
 
 from config_reader import config
-# from text import *
-
+from text import *
 
 #  создает новую папку по указанному пути, при условии, что все указанные промежуточные (вложенные) директории уже существуют.
 def make_dir_my(driver_fio):
@@ -18,6 +17,7 @@ def make_dir_my(driver_fio):
     # возвращает путь до каталога уже существующего
     if isdir_my is True:
         return path + '\\'
+
 
 # send mail
 email_login = config.email_login.get_secret_value()
@@ -41,11 +41,6 @@ def validate_fio(string_fio: str):
         return False
 
 
-list_services = ['КАСКО', 'ОСАГО', 'Страхование от несчастных случаев', 'ВЗР (выезд за рубеж)',
-                 'ДМС', 'Страхование недвижимости', 'Ипотечное страхование',
-                 'Страхование при диагностировании критических заболеваний']
-
-
 # ответ на выбранное страхование
 def service_choosen(service):
 
@@ -53,26 +48,25 @@ def service_choosen(service):
         return 'пакет документов для каско'
 
     elif service == list_services[1]:
-        return ('пакет документов осаго')
+        return 'пакет документов осаго'
 
     elif service == list_services[2]:
-        return ('пакет документов для несчастных случаев')
+        return 'пакет документов для несчастных случаев'
 
     elif service == list_services[3]:
-        return ('пакет документов взр')
+        return 'пакет документов взр'
 
     elif service == list_services[4]:
-        return ('пакет документов дмс')
+        return 'пакет документов дмс'
 
     elif service == list_services[5]:
-        return ('пакет документов недвижка')
+        return 'пакет документов недвижка'
 
     elif service == list_services[6]:
-        return ('пакет документов ипотечное')
+        return 'пакет документов ипотечное'
 
     elif service == list_services[7]:
-        return print('пакет документов крит заболеваний')
-
+        return 'пакет документов крит заболеваний'
 
 
 def name_worker(service):
@@ -80,22 +74,22 @@ def name_worker(service):
         return 'ssilka na sotrudnika для каско'
 
     elif service == list_services[1]:
-        return ('ssilka осаго')
+        return 'ssilka осаго'
 
     elif service == list_services[2]:
-        return ('ssilka для несчастных случаев')
+        return 'ssilka для несчастных случаев'
 
     elif service == list_services[3]:
-        return ('ssilka взр')
+        return 'ssilka взр'
 
     elif service == list_services[4]:
-        return ('ssilka дмс')
+        return 'ssilka дмс'
 
     elif service == list_services[5]:
-        return ('ssilka недвижка')
+        return 'ssilka недвижка'
 
     elif service == list_services[6]:
-        return ('ssilka ипотечное')
+        return 'ssilka ипотечное'
 
     elif service == list_services[7]:
-        return print('silka крит заболеваний')
+        return 'silka крит заболеваний'

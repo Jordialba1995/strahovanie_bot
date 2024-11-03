@@ -4,25 +4,16 @@ from aiogram import Router, F
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import StatesGroup, State, default_state
 from datetime import *
-from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile
+
 
 from keyboards import row_keyboard, services_kb
 from bot_functions import make_dir_my, send_email, validate_fio, service_choosen, name_worker
-# from text import *
+from text import *
 
 
 # items for keyboars
 next_step = ['Далее']
 y_n = ['Да', 'Нет']
-
-list_services = ['КАСКО', 'ОСАГО', 'Страхование от несчастных случаев', 'ВЗР (выезд за рубеж)',
-                 'ДМС', 'Страхование недвижимости', 'Ипотечное страхование',
-                 'Страхование при диагностировании критических заболеваний']
-
-# texts
-hello_message = 'Приветственное сообщение'
-
-bye_message = 'poka poka by jordi_alba #4'
 
 
 router = Router()
@@ -31,14 +22,13 @@ router = Router()
 class Service_Strahovanie(StatesGroup):
     # 0
     zero_state = State()
-
-    choose_service = State()
-
-    service_chosen = State()
     # fio
     fio = State()
     save_fio = State()
     successed_fio = State()
+    # services
+    choose_service = State()
+    service_chosen = State()
     # paket dokov
     input_docs = State()
     # name worker
@@ -47,7 +37,7 @@ class Service_Strahovanie(StatesGroup):
     the_end = State()
 
 
-# Начальное вхождение
+# start
 @router.message(Command(commands=['start']))
 async def cmd_start(message: Message, state: FSMContext):
     await state.set_state(Service_Strahovanie.zero_state)
@@ -60,7 +50,7 @@ async def cmd_start(message: Message, state: FSMContext):
 
 # fio
 @router.message(Service_Strahovanie.fio,
-                F.text.in_(next_step) or F.text == 'В начало')
+                F.text.in_({'Далее', 'В начало'}))
 async def fio(message: Message, state: FSMContext):
     await message.answer(
         text='Введите Фамилию, Имя, Отчество ЧЕРЕЗ ПРОБЕЛ\nПример: Иванов Иван Иванович',
@@ -217,17 +207,18 @@ async def kasko_worker(message: Message, state: FSMContext):
     )
     await state.set_state(Service_Strahovanie.the_end)
 
-# @router.message(Service_Strahovanie.the_end,
-#                 F.text == 'В начало')
-# async def the_end(message: Message, state: FSMContext):
-#     await message.answer(
-#         text=f'{bye_message}\nВведите Фамилию, Имя, Отчество ЧЕРЕЗ ПРОБЕЛ\nПример: Иванов Иван Иванович',
-#         reply_markup=ReplyKeyboardRemove()
-#
-#     )
-#     await state.clear()
-#     # await state.set_data({})
-#     await state.set_state(Service_Strahovanie.fio)
 
+# ended
+@router.message(Service_Strahovanie.the_end,
+                F.text == 'В начало')
+async def the_end(message: Message, state: FSMContext):
+    user_data = await state.get_data()
+    await message.answer(
+        text=f'{bye_message}\nВведите Фамилию, Имя, Отчество ЧЕРЕЗ ПРОБЕЛ\nПример: Иванов Иван Иванович',
+        reply_markup=ReplyKeyboardRemove()
+    )
+    await state.clear()
+    # await state.set_data({})
+    await state.set_state(Service_Strahovanie.save_fio)
 
 
