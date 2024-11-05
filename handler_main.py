@@ -195,9 +195,8 @@ async def failed_input(message: Message):
                 )
 async def kasko_worker(message: Message, state: FSMContext):
     user_data = await state.get_data()
-    letter = user_data['fio'] + '//' + user_data['service'] + '//' + datetime.today().strftime('%d%m%Y_%H%M%S')
+    letter = f'ФИО: {user_data['fio']}\nУслуга: {user_data['service']}\nДата: {datetime.today().strftime('%d_%m_%Y\nВремя: %H_%M_%S')}'
     send_email(letter)
-
     await message.answer(
         text=f'ssilka na {name_worker(user_data['service'])} sotrudnika',
     )
